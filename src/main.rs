@@ -66,15 +66,29 @@ fn run_commands(
         it.try_fold(
             None,
             |mut elem: Option<Element>, command: &WebCommand| -> Result<Option<Element>> {
-                let get_next_locator = || -> Result<Locator> {
-                    Ok(Locator::Css(command.selector.as_ref().ok_or_else(
-                        || anyhow!("A command needs a selector string"),
-                    )?))
+                let get_selector = || -> Result<&String> {
+                    command
+                        .selector
+                        .as_ref()
+                        .ok_or_else(|| anyhow!("A command needs a selector string"))
                 };
+                let get_next_locator = || -> Result<Locator> { Ok(Locator::Css(get_selector()?)) };
 
                 match &command.command_type {
                     CommandType::GoTo(url) => {
                         runtime.block_on(client.goto(url))?;
+                        Ok(elem)
+                    }
+                    CommandType::ChangeWindowSize { width, height } => {
+                        runtime.block_on(client.set_window_size(*width, *height))?;
+                        Ok(elem)
+                    }
+                    CommandType::ScrollIntoView => {
+                        let script = format!(
+                            "document.querySelector(\"{}\").scrollIntoView();",
+                            get_selector()?
+                        );
+                        runtime.block_on(client.execute(&script, vec![]))?;
                         Ok(elem)
                     }
                     CommandType::WaitForSeconds(sec) => {
@@ -89,10 +103,6 @@ fn run_commands(
                         } else {
                             bail!("Couldn't find the window")
                         }
-                    }
-                    CommandType::EnterFrame(idx) => {
-                        client = runtime.block_on(client.clone().enter_frame(Some(*idx as _)))?;
-                        Ok(elem)
                     }
                     CommandType::LeaveFrame => {
                         client = runtime.block_on(client.clone().enter_parent_frame())?;
@@ -118,6 +128,9 @@ fn run_commands(
                         elem = Some(new_elem.clone());
 
                         match &command.command_type {
+                            CommandType::EnterFrame => {
+                                client = runtime.block_on(new_elem.enter_frame())?;
+                            }
                             CommandType::Click => {
                                 client = runtime.block_on(new_elem.click())?;
                             }

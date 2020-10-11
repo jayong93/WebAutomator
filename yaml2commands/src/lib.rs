@@ -9,10 +9,12 @@ pub enum CommandType {
     WaitForSeconds(f64),
     GoTo(String),
     ChangeWindow(usize),
-    EnterFrame(usize),
+    EnterFrame,
     LeaveFrame,
     PrintSource,
     Recursive(Box<WebCommand>),
+    ScrollIntoView,
+    ChangeWindowSize{width: u32, height: u32},
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
@@ -44,8 +46,8 @@ mod tests {
                 command_type: CommandType::GoTo("https://google.com".into())
             },
             WebCommand{
-                selector: Some("p.test".into()),
-                command_type: CommandType::Wait,
+                selector: None,
+                command_type: CommandType::ChangeWindowSize{width: 800, height: 600},
             },
             WebCommand{
                 selector: Some("a#link".into()),
@@ -66,8 +68,11 @@ mod tests {
 - selector: ~
   command_type:
     GoTo: \"https://google.com\"
-- selector: p.test
-  command_type: Wait
+- selector: ~
+  command_type:
+    ChangeWindowSize:
+      width: 800
+      height: 600
 - selector: \"a#link\"
   command_type: Click
 - selector: div
