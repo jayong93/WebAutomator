@@ -13,6 +13,7 @@ pub enum CommandType {
     EnterFrame,
     LeaveFrame,
     PrintSource,
+    Loop(Vec<WebCommand>),
     Recursive(Box<WebCommand>),
     ScrollIntoView,
     ChangeWindowSize{width: u32, height: u32},

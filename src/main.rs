@@ -29,9 +29,9 @@ fn main() -> Result<()> {
 
     let mut child = Command::new(&option.geckodriver_path).spawn()?;
     let result = if let Ok(mut client) = runtime.block_on(Client::new("http://localhost:4444")) {
-        commands.iter().try_for_each(|command| {
-            run_commands(&mut client, command, &mut runtime)
-        })
+        commands
+            .iter()
+            .try_for_each(|command| run_commands(&mut client, command, &mut runtime))
     } else {
         Ok(())
     };
@@ -78,6 +78,18 @@ fn run_commands(
             match &command.command_type {
                 CommandType::GoTo(url) => {
                     runtime.block_on(client.goto(url))?;
+                    Ok(elem)
+                }
+                CommandType::Loop(commands) => {
+                    loop {
+                        let result = commands
+                            .into_iter()
+                            .try_for_each(|command| run_commands(client, command, runtime));
+                        match result {
+                            Ok(_) => break,
+                            Err(e) => eprintln!("Failed to finish a loop: {}", e),
+                        }
+                    }
                     Ok(elem)
                 }
                 CommandType::ChangeWindowSize { width, height } => {
