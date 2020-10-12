@@ -29,10 +29,9 @@ fn main() -> Result<()> {
 
     let mut child = Command::new(&option.geckodriver_path).spawn()?;
     let result = if let Ok(mut client) = runtime.block_on(Client::new("http://localhost:4444")) {
-        for command in &commands {
-            run_commands(&mut client, command, &mut runtime)?;
-        }
-        Ok(())
+        commands.iter().try_for_each(|command| {
+            run_commands(&mut client, command, &mut runtime)
+        })
     } else {
         Ok(())
     };
