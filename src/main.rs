@@ -127,7 +127,7 @@ fn run_commands(
                 }
                 CommandType::Wait => {
                     let locator = get_next_locator()?;
-                    elem = Some(runtime.block_on(client.wait_for_find(locator))?);
+                    runtime.block_on(client.wait_for_find(locator))?;
                     Ok(elem)
                 }
                 _ => {
@@ -138,23 +138,26 @@ fn run_commands(
                         runtime.block_on(client.find(locator))?
                     };
 
-                    elem = Some(new_elem.clone());
-
                     match &command.command_type {
                         CommandType::EnterFrame => {
                             *client = runtime.block_on(new_elem.enter_frame())?;
+                            Ok(None)
                         }
                         CommandType::Click => {
                             *client = runtime.block_on(new_elem.click())?;
+                            Ok(None)
                         }
                         CommandType::Input(s) => {
                             runtime.block_on(new_elem.send_keys(s))?;
+                            Ok(None)
                         }
-                        CommandType::Recursive(_) | CommandType::Check => {}
+                        CommandType::Recursive(_) => {
+                            elem = Some(new_elem);
+                            Ok(elem)
+                        }
+                        CommandType::Check => Ok(None),
                         _ => unreachable!(),
                     }
-
-                    Ok(elem)
                 }
             }
         },
