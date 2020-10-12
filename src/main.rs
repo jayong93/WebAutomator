@@ -139,7 +139,7 @@ fn run_commands(
                         CommandType::Input(s) => {
                             runtime.block_on(new_elem.send_keys(s))?;
                         }
-                        CommandType::Recursive(_) => {}
+                        CommandType::Recursive(_) | CommandType::Check => {}
                         _ => unreachable!(),
                     }
 

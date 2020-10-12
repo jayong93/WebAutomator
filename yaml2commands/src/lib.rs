@@ -4,6 +4,7 @@ pub use serde_yaml;
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub enum CommandType {
     Click,
+    Check,
     Input(String),
     Wait,
     WaitForSeconds(f64),
