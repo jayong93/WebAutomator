@@ -5,6 +5,7 @@ pub use serde_yaml;
 pub enum CommandType {
     Click,
     Check,
+    Clear,
     Input(String),
     Wait,
     WaitForSeconds(f64),
