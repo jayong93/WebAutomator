@@ -4,6 +4,8 @@ pub use serde_yaml;
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub enum CommandType {
     Click,
+    ClickUntilNavigation,
+    ClickUntilDomChanged,
     Check,
     Clear,
     Input(String),

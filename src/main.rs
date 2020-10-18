@@ -179,6 +179,30 @@ fn do_command_detail(
                     *client = runtime.block_on(new_elem.enter_frame())?;
                     Ok(None)
                 }
+                CommandType::ClickUntilNavigation => {
+                    let curr_url = runtime.block_on(client.current_url())?;
+                    loop {
+                        *client = runtime.block_on(new_elem.click())?;
+                        let new_url = runtime.block_on(client.current_url())?;
+                        if curr_url != new_url {
+                            break Ok(None)
+                        } else {
+                            new_elem = runtime.block_on(client.find(get_next_locator()?))?;
+                        }
+                    }
+                }
+                CommandType::ClickUntilDomChanged => {
+                    let curr_url = runtime.block_on(client.source())?;
+                    loop {
+                        *client = runtime.block_on(new_elem.click())?;
+                        let new_url = runtime.block_on(client.source())?;
+                        if curr_url != new_url {
+                            break Ok(None)
+                        } else {
+                            new_elem = runtime.block_on(client.find(get_next_locator()?))?;
+                        }
+                    }
+                }
                 CommandType::Click => {
                     *client = runtime.block_on(new_elem.click())?;
                     Ok(None)
