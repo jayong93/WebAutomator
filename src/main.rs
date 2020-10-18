@@ -11,7 +11,11 @@ use yaml2commands::{serde_yaml::from_str, CommandType, WebCommand};
 struct CmdOption {
     #[structopt(help = "A file path which contains webdriver commands written in YAML format")]
     input_file: PathBuf,
-    #[structopt(long, default_value = "geckodriver", help = "A path specifying where the geckodriver binary is")]
+    #[structopt(
+        long,
+        default_value = "geckodriver",
+        help = "A path specifying where the geckodriver binary is"
+    )]
     geckodriver_path: String,
 }
 
@@ -81,6 +85,9 @@ fn do_command_detail(
     client: &mut Client,
     runtime: &mut tokio::runtime::Runtime,
 ) -> Result<Option<Element>> {
+    use fantoccini::error::CmdError;
+    use webdriver::error::ErrorStatus;
+
     let get_selector = || -> Result<&String> {
         command
             .selector
@@ -102,7 +109,16 @@ fn do_command_detail(
                     .try_for_each(|command| run_command(client, command, runtime));
                 match result {
                     Ok(_) => break,
-                    Err(e) => eprintln!("Failed to finish a loop: {}", e),
+                    Err(e) => {
+                        if let Some(CmdError::Standard(e)) = e.downcast_ref::<CmdError>() {
+                            if let ErrorStatus::NoSuchWindow | ErrorStatus::InvalidSessionId = e.error {
+                                bail!("A loop has failed: {}", e)
+                            }
+                            eprintln!("Failed to finish a loop: {}; will retry...", e);
+                        } else {
+                            eprintln!("Failed to finish a loop: {}; will retry...", e);
+                        }
+                    }
                 }
             }
             Ok(elem)
@@ -171,9 +187,7 @@ fn do_command_detail(
                     runtime.block_on(new_elem.send_keys(s))?;
                     Ok(None)
                 }
-                CommandType::Recursive(_) => {
-                    Ok(Some(new_elem))
-                }
+                CommandType::Recursive(_) => Ok(Some(new_elem)),
                 CommandType::Check => Ok(None),
                 _ => unreachable!(),
             }

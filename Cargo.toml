@@ -12,6 +12,7 @@ static_commands = []
 
 [dependencies]
 fantoccini = "0.14.*"
+webdriver = "*"
 yaml2commands = {path = "yaml2commands"}
 tokio = {version = "*", features = ["macros", "rt-threaded"]}
 structopt = "0.3.19"
