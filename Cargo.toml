@@ -14,7 +14,8 @@ static_commands = []
 fantoccini = "0.14.*"
 webdriver = "*"
 yaml2commands = {path = "yaml2commands"}
-tokio = {version = "*", features = ["macros", "rt-threaded"]}
+tokio = {version = "0.2.*", features = ["macros", "rt-core", "time", "stream"]}
+futures = "*"
 structopt = "0.3.19"
 anyhow = "1.0.33"
 
