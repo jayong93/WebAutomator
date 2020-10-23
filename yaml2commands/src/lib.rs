@@ -6,6 +6,7 @@ pub enum CommandType {
     Click,
     ClickUntilNavigation,
     ClickUntilDomChanged,
+    ClickUntilNewWindowOpened,
     Check,
     Clear,
     Input(String),

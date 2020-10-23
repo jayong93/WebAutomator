@@ -194,25 +194,40 @@ async fn do_command_detail(
                 }
                 CommandType::ClickUntilNavigation => {
                     let curr_url = client.current_url().await?;
+                    let locator = get_next_locator()?;
                     loop {
                         *client = new_elem.click().await?;
                         let new_url = client.current_url().await?;
                         if curr_url != new_url {
                             break Ok(None);
                         } else {
-                            new_elem = client.find(get_next_locator()?).await?;
+                            new_elem = client.find(locator).await?;
                         }
                     }
                 }
                 CommandType::ClickUntilDomChanged => {
                     let curr_url = client.source().await?;
+                    let locator = get_next_locator()?;
                     loop {
                         *client = new_elem.click().await?;
                         let new_url = client.source().await?;
                         if curr_url != new_url {
                             break Ok(None);
                         } else {
-                            new_elem = client.find(get_next_locator()?).await?;
+                            new_elem = client.find(locator).await?;
+                        }
+                    }
+                }
+                CommandType::ClickUntilNewWindowOpened => {
+                    let curr_windows = client.windows().await?;
+                    let locator = get_next_locator()?;
+                    loop {
+                        *client = new_elem.click().await?;
+                        let new_windows = client.windows().await?;
+                        if curr_windows.len() < new_windows.len() {
+                            break Ok(None);
+                        } else {
+                            new_elem = client.find(locator).await?;
                         }
                     }
                 }
